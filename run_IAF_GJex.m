@@ -117,13 +117,10 @@ axis([0,Tfin,0,0.1])
 
 
 %% video -- just one neuron
-% red: 0.8 0.2 0.3
-% blue: 0 0.8 0.8
 figure
 M = [];
 dx = 100;
 for i = 1:floor(length(V1)/dx)
-%    subplot(2,1,1)
    plot(t,-50*ones(size(t)),'--','color',[0.5 0.5 0.5],'LineWidth',2.0)
    hold on
      plot(t,vR*ones(size(t)),'--','color',[0.5 0.5 0.5],'LineWidth',2.0)
@@ -133,24 +130,9 @@ for i = 1:floor(length(V1)/dx)
    plot(t(i*dx),V1(i*dx),'o','MarkerSize',12,'MarkerFaceColor',[0.8 0.2 0.3],'Color',[0.1 0.1 0.1],'LineWidth',2.0)
    hold on
     title('Voltage')
-%     xlabel('Time (ms)')
     set(gca,'FontSize',25.0,'XAxisLocation','origin','YAxisLocation','origin','xTick',[-500 500],'yTick',[-500 500])
     axis([0,Tfin,-70,-45])
-%     subplot(2,1,2)
-%         plot(t(1+(i-1)*dx:i*dx),V2(1+(i-1)*dx:i*dx),'k','LineWidth',3.0)
-%     hold on
-%     plot(t(i*dx),V2(i*dx),'o','MarkerSize',12,'MarkerFaceColor',[0.6 0.1 0.6],'Color',[0.1 0.1 0.1],'LineWidth',2.0)
-%     hold on
-%     title('Voltage Neuron 2')
-% %     xlabel('Time (ms)')
-%     set(gca,'FontSize',25.0,'XAxisLocation','origin','YAxisLocation','origin','xTick',[-500 500],'yTick',[-500 500])
-% %     axis([0,Tfin,-80,-60])
-%     axis([0,Tfin,-75,-55])
-    
     M = [M,getframe(gcf)]; 
-%     if yout(1+(i-1)*dx:i*dx,1) > 100
-%         break
-%     end
 end
 
 myVideo = VideoWriter(['oneNeuron_Exvoltage.avi']);
@@ -159,11 +141,7 @@ open(myVideo);
 writeVideo(myVideo, M);
 close(myVideo);
 
-   
-
 %% video
-% red: 0.8 0.2 0.3
-% blue: 0 0.8 0.8
 figure
 M = [];
 dx = 100;
@@ -176,7 +154,6 @@ for i = 1:floor(length(V1)/dx)
    plot(t(i*dx),V1(i*dx),'o','MarkerSize',12,'MarkerFaceColor',[0.8 0.2 0.3],'Color',[0.1 0.1 0.1],'LineWidth',2.0)
    hold on
     title('Voltage Neuron 1')
-%     xlabel('Time (ms)')
     set(gca,'FontSize',25.0,'XAxisLocation','origin','YAxisLocation','origin','xTick',[-500 500],'yTick',[-500 500])
     axis([0,Tfin,-70,-45])
     subplot(2,1,2)
@@ -185,15 +162,9 @@ for i = 1:floor(length(V1)/dx)
     plot(t(i*dx),V2(i*dx),'o','MarkerSize',12,'MarkerFaceColor',[0.6 0.1 0.6],'Color',[0.1 0.1 0.1],'LineWidth',2.0)
     hold on
     title('Voltage Neuron 2')
-%     xlabel('Time (ms)')
     set(gca,'FontSize',25.0,'XAxisLocation','origin','YAxisLocation','origin','xTick',[-500 500],'yTick',[-500 500])
-%     axis([0,Tfin,-80,-60])
-    axis([0,Tfin,-75,-55])
-    
+    axis([0,Tfin,-75,-55])  
     M = [M,getframe(gcf)]; 
-%     if yout(1+(i-1)*dx:i*dx,1) > 100
-%         break
-%     end
 end
 
 myVideo = VideoWriter(['GJNeurons_voltage.avi']);
@@ -203,40 +174,3 @@ writeVideo(myVideo, M);
 close(myVideo);
 
    
-
-
-%% have dot move along curve
-
-% x = t(1:length(V1));
-% y = V1;
-% y2 = V2;
-% 
-% figure;
-% %set(gcf,'color','w');
-% whitebg([1 1 1])
-% plot(t,-50*ones(size(t)),'k--','LineWidth',2.0)
-% hold on
-% plot(x,y,'k','LineWidth',2)
-% axis([0,Tfin,-80,max(V1)])
-% hold on
-% p1 = plot(x(1),y(1),'o','MarkerFaceColor','cyan','MarkerSize',12);
-% hold off
-% xlabel('Time (ms)')
-% ylabel('Voltage (mV)')
-% set(gca, 'fontsize',14)
-% title('Voltage of Neuron 1')
-% 
-% vid = VideoWriter('oneNeuronVoltage.avi');
-% vid.Quality = 100;
-% vid.FrameRate = 10;
-% open(vid)
-% for k = 2:168:length(x)
-%     p1.XData = x(k);
-%     p2.XData = x(k);
-%     p1.YData = y(k);
-%     p2.YData = y2(k);
-%     drawnow
-%     writeVideo(vid, getframe(gcf));
-% end
-% close(vid);
-
