@@ -118,13 +118,13 @@ void connectGJs_sisters(Network* Neuron, int N, double probGJs);
 //connect neurons with synapses using a probability (no structure) and set all initial connections to 0
 void setUpZeroSynapses(Network* Neuron, int N,  double probCortConnect);
 // give synaptic connections a value.
-void connectSynapses(Network* Neuron, int N, double strengthConnect[2][2], double gmax_cortical);
+void connectSynapses(Network* Neuron, int N, double strengthConnect[2][2], double gmax_cortical, int flagNonZeroStrength);
 // connect neurons synaptically within some radius (perdiodic in up/down and left/right)
 void setUpZeroSynapses_radius(Network* Neuron, int N, int radiusConn[2][2]);
 //connect neurons in 1d (just on a line within a radius)
 void connect_synap_radius1d(Network* Neuron, int N, int radiusConn[2][2], double strengthConnect[2][2]);
 // calculate the input from LGN cells and the resulting plasticity (triplet)
-void inputFromLGN(Network* Neuron ,int N, int N_input, double t, double dt, double oversigmaE, double tau_LTD, double A_trip_LTD, double gmax, double flagNewXa,double R0);
+void inputFromLGN(Network* Neuron, int N, int N_input, double t, double dt, double oversigmaE, double tau_LTD, double gmax, double flagNewXa,double R0);
 // calculate the background drive
 void poissonBackground(Network* Neuron, int N, double t, double dt, double oversigmaE, double backgroundNu);
 // calculate input from other cotical cells and update plasticity (triplet and iSTDP)
@@ -143,10 +143,15 @@ void create_neurons(Network* Neuron, int N, int T,double gmax, int N_input, doub
         if (pr2 < 0.2) //inhib
         {
             n.type = 1;
-            n.backgroundF = 2.0*backgroundF;
+            n.backgroundF = backgroundF;//2.0*backgroundF;
             countInhib = countInhib+1;
             for (int L = 0; L<N_input; L++)
-            { n.synapStrength[L] = 0.0;}
+            {
+                //n.synapStrength[L] = 0.0;
+                //startValue = 0.5*gmax;
+                startValue = (0.0 + 0.14*((double)rand()/RAND_MAX))*gmax; //random start value for synaptic connection
+                n.synapStrength[L] = startValue;
+            }
             n.sisterID = 0;
         }
         else //make exc and make LGN connections
@@ -384,7 +389,7 @@ void setUpZeroSynapses_radius(Network* Neuron, int N, int radiusConn[2][2])
 {
     // connects each neuron by +/- radiusSynConn in the up/down and left/right directions
     int X1, Y1, X2, Y2,radiusSynConn;
-    double startVal;
+    //double startVal;
     int M = sqrt(N);
     
     for (int i=0; i<N; i++)
@@ -483,7 +488,7 @@ void connect_synap_radius1d(Network* Neuron, int N, int radiusConn[2][2], double
 }
 
 // just put the synaptic strengths in:
-void connectSynapses(Network* Neuron, int N, double strengthConnect[2][2], double gmax_cortical)
+void connectSynapses(Network* Neuron, int N, double strengthConnect[2][2], double gmax_cortical, int flagNonZeroStrength)
 {
     cout << "start cortical synapses at higher value" << endl;
     int numConn, n1;
@@ -498,9 +503,9 @@ void connectSynapses(Network* Neuron, int N, double strengthConnect[2][2], doubl
             n1 = Neuron[i].corticalConn[j];
             val = strengthConnect[Neuron[i].type][Neuron[n1].type];
            // cout << "type 1 =" << Neuron[i].type << " type 2 = " << Neuron[n1].type << " strength = " << val << endl;
-            if ((Neuron[i].type == 0) && (Neuron[n1].type == 0))
+            if ((Neuron[i].type == 0) && (Neuron[n1].type == 0) && (flagNonZeroStrength == 1))
             {   //val = gmax_cortical;}
-                //val = 0.0;
+                //  val = 0.0;
                 val = (0.25 + 0.1*((double)rand()/RAND_MAX))*gmax_cortical; //random start value for synaptic connection
                 //cout << val << endl;
                 Neuron[i].corticalStrength[n1] = val; // put this into the vector of cortical connections
@@ -510,9 +515,10 @@ void connectSynapses(Network* Neuron, int N, double strengthConnect[2][2], doubl
     }
 }
 
+
 void inputFromLGN(Network* Neuron ,int N, int N_input, double t, double dt, double oversigmaE, double tau_LTD, double gmax, double flagNewXa,double R0)
 {
-    double r, u, newu, newr2, tsp, FR, synStrength, updateStrength;
+    double r, u, newu, newr2, tsp, FR, synStrength,synStrength1, updateStrength;
     double R1 = 20.0; //80.0;
     double sigmaRate = 80.0;
     int lengthTsp;
@@ -551,6 +557,11 @@ void inputFromLGN(Network* Neuron ,int N, int N_input, double t, double dt, doub
                 r2[j] = r2[j] + 1.0;
                 for (int KK = 0; KK<N; KK++)
                 {
+                    // update conductance of inhibitory neurons:
+                    if (Neuron[KK].type==1)
+                    { synStrength1 = Neuron[KK].synapStrength[j];
+                        Neuron[KK].g_excite1 = Neuron[KK].g_excite1 + synStrength1*exp(-(t - tsp)*oversigmaE);}
+                    
                     // put this spike time in the list of input spike times for the neurons to which it is connected:
                     // if synapse j is in the list of connections for neuron KK
                     // (these are only exc)

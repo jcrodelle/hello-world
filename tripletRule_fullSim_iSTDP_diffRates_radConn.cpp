@@ -27,9 +27,10 @@ int main(int argc, char * argv[]){
    // double probGJs = atof(argv[11]);//
     double targetRate = atof(argv[11]); // target rate for changing LTD
     double gmax_cortical = atof(argv[12]); // max cortical weight
-    double timeForSynapses =atof(argv[13]); //time to start recurrent synapses
-    
-    if (argc != 14)
+    double timeForSynapses=atof(argv[13]); //time to start recurrent synapses
+    int flagNonZeroStrength =atof(argv[14]); //flag for starting cortical synapses at 0 (flag ==0) or at a nonzero value (flag ==1)
+   
+    if (argc != 15)
     { cout << " there are " << argc << " input arguments, but there should be 14!" << endl;
         return 0; }
 // setting up simulation params
@@ -43,7 +44,7 @@ int main(int argc, char * argv[]){
     double probCortConnect = 1.0; //prob of cortical cells connecting
     //double strengthConnect = 0.0; // strength of initial connection
 //    int radiusConn[2][2] = {{40,126},{126,126}};
-    // E-E,
+    // E-E, I-E  (0,1)
     double strengthConnect[2][2] = {{0.0*gmax_cortical,0.1*gmax_cortical},{0.3*gmax_cortical,0.1*gmax_cortical}};
     Network* Neuron = new Network[N];
 
@@ -53,21 +54,23 @@ int main(int argc, char * argv[]){
     //create_neurons_seedLGN(Neuron, N, T, gmax, N_input, backgroundF);
     cout << "there are " << N << " neurons with " << N_input << " synapses" << endl;
    
-    // just set up the syapses as all-to-all with probability probCortConnect
+//    // just set up the syapses as all-to-all with probability probCortConnect
     setUpZeroSynapses(Neuron, N,  probCortConnect);
     cout << " all-to-all synapses " << endl;
     parameterFile << "all-to-all synapses" << endl;
+//
     // set up synaptic structure with radius
-   // setUpZeroSynapses_radius(Neuron,N,radiusConn);
-   //  cout << " radius synapses " << endl;
-  //  parameterFile << "radius synapses" << endl;
+//    setUpZeroSynapses_radius(Neuron,N,radiusConn);
+  //   cout << " radius synapses " << endl;
+   // parameterFile << "radius synapses" << endl;
     //double strengthConnect[2][2] = {{0.0,0.1*gmax_cortical},{0.25*gmax_cortical,0.1*gmax_cortical}};
     //double probGJs = 0.0; //0.02; // prob of connecting to sister cell
-    // connect with gap junctions
-    int numGJs = 150;
-    //connectGJs(Neuron, N,  numGJs);
-    //parameterFile << "pairs of GJs" << endl;
-    
+   
+   //  connect with gap junctions
+//    int numGJs = 150;
+//    connectGJs(Neuron, N,  numGJs);
+//    parameterFile << "pairs of GJs" << endl;
+
     connectGJs_sisters(Neuron, N, probGJs);
     parameterFile << "sister GJs" << endl;
     // set initial interval length:
@@ -114,23 +117,16 @@ int main(int argc, char * argv[]){
         {
             A_trip_LTP = 0.0;
             cortexLearnFlag = false;
-           // gc = 0.004;
-             gc = 0.06;
-            spikeletSize = 1.0;
+            gc = 0.06;
+            spikeletSize = 1.0;  //1.0
         }
         // only allow feedforward synapses and GJs
         else if (t < timeForSynapses)
         {
             A_trip_LTP = input_A_tripLTP;
             cortexLearnFlag = false;
-          //  gc = 0.004;
             gc = 0.06;
-            spikeletSize = 1.0;
-//            if (onceFlag == 1)
-//            {
-//                connectSynapses(Neuron, N, strengthConnect,gmax_cortical);
-//                onceFlag = 0;
-//            }
+            spikeletSize = 1.0;  //1.0
         }
         // now feedforward AND recurrent NO GJs
         else
@@ -140,12 +136,12 @@ int main(int argc, char * argv[]){
             gc = 0.0;
             spikeletSize = 0.0;
             // once we allow recurrent connections set synaptic connections
-//            if (onceFlag == 1)
-//            {
-//                connectSynapses(Neuron, N, strengthConnect,gmax_cortical);
-//                cout << "connected synapses at time t = " << t<< endl;
-//                onceFlag = 0;
-//            }
+            if (onceFlag == 1)
+            {
+                connectSynapses(Neuron, N, strengthConnect,gmax_cortical,flagNonZeroStrength);
+                cout << "connected synapses at time t = " << t << endl;
+                onceFlag = 0;
+            }
         }
         
         for(int L = 0; L<N_input; L++)
@@ -169,7 +165,7 @@ int main(int argc, char * argv[]){
             numGJconn = Neuron[KK].GJConn.size();
             if (numGJconn > 0)
             { // loop over GJ connections and calculate sum
-                vT_local = -45.0; //threshold voltage
+                vT_local = -45.0; //-43.2; //threshold voltage
                 sumGJ = 0.0;
                 for (int J = 0; J<numGJconn; J++)
                 {
@@ -371,6 +367,7 @@ int main(int argc, char * argv[]){
     parameterFile << "radius I-I" <<radiusConn[1][1] << endl;
     parameterFile<< "gmax_cortical = " << gmax_cortical << endl;
     parameterFile << "prob cortical connection  " << probCortConnect << endl;
+    parameterFile << "flag for nonzero strength = " <<  flagNonZeroStrength << endl;
 
     parameterFile<<" A3_LTP = " << A_trip_LTP << endl;
     parameterFile << "A3 LTP cort = " << A_trip_LTP_cort << endl;
